@@ -25,7 +25,8 @@ The repository contains the following core components and assemblies:
 
 Dependencies: `DiGi.Core` and `DiGi.Python` (relative `HintPath`) and `System.Text.Json` 10.0.9 only,
 so a consumer reaching this library by `HintPath` has no transitive NuGet package to re-declare. The
-Python scripts in `files/Laya/` are embedded in the assembly and also copied to `bin/Laya/`.
+project already embeds whatever is in `files/Laya/` and copies it to `bin/Laya/`; the Python scripts
+themselves arrive with DiGi.Laya#1.
 
 Tests live in the `DiGi.Test` repository as `DiGi.Test/DiGi.Laya.xUnit`.
 
