@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<OutputPath>..\bin\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- Redirect AssemblyAttributes.cs so each project has its own -->
+		<TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(MSBuildProjectName).AssemblyAttributes.cs</TargetFrameworkMonikerAssemblyAttributesPath>
+		<!-- Avoid duplicate TargetFrameworkAttribute -->
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- Prevent duplicate 'Compile' inclusion of the generated AssemblyAttributes.cs -->
+		<Compile Remove="$(IntermediateOutputPath)$(MSBuildProjectName).AssemblyAttributes.cs" />
+	</ItemGroup>
+
+	<!-- The Python scripts ship inside the assembly so that DiGi.Python's Modify.WriteScripts works in any
+	     host, not only where a build happened to copy the Laya folder next to it. CopyFiles below still
+	     lays them out in bin. -->
+	<ItemGroup>
+		<EmbeddedResource Include="$(ProjectDir)..\files\Laya\*.*" LogicalName="$(RootNamespace).Laya.%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- DiGi.Core, DiGi.Python and System.Text.Json are the whole dependency set, so a consumer reaching
+		     this library by HintPath has no transitive NuGet package to re-declare. -->
+		<PackageReference Include="System.Text.Json" Version="10.0.9" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="DiGi.Core">
+			<HintPath>..\..\DiGi.Core\bin\DiGi.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Python">
+			<HintPath>..\..\DiGi.Python\bin\DiGi.Python.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="CopyFiles" AfterTargets="Build">
+		<ItemGroup>
+			<_Files Include="$(ProjectDir)..\files\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_Files)" DestinationFiles="@(_Files->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="CopyUserFiles" AfterTargets="CopyFiles">
+		<ItemGroup>
+			<_UserFiles Include="$(ProjectDir)..\user files\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_UserFiles)" DestinationFiles="@(_UserFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+	</Target>
+
+</Project>
