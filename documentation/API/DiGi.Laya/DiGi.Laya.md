@@ -492,7 +492,7 @@ The result of the run, or `null` when [layaRequests](DiGi.Laya.md#DiGi.Laya.Modi
 
 Fine\-tunes a local Laya checkpoint on a training JSONL in one CPython run of train\.py \(laya\.train\.finetune\) and reports the new checkpoint\.
 
-Refused before a process starts, with the reason in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaTrainingResult.Messages 'DiGi\.Laya\.Classes\.LayaTrainingResult\.Messages'): an interpreter that does not resolve ([LayaPythonPath\(string\)](DiGi.Laya.md#DiGi.Laya.Query.LayaPythonPath(string) 'DiGi\.Laya\.Query\.LayaPythonPath\(string\)')); a base that is not a checkpoint directory ([LayaModelPath\(string\)](DiGi.Laya.md#DiGi.Laya.Query.LayaModelPath(string) 'DiGi\.Laya\.Query\.LayaModelPath\(string\)'); a model name or Hub id is never downloaded); a training or evaluation file that does not exist; no output directory, or one that is inside a Laya\models folder ([IsInsideModelsDirectory\(string\)](DiGi.Laya.md#DiGi.Laya.Query.IsInsideModelsDirectory(string) 'DiGi\.Laya\.Query\.IsInsideModelsDirectory\(string\)') - training never writes where deployed checkpoints live), not empty, or the base checkpoint or inside it.
+Refused before a process starts, with the reason in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaTrainingResult.Messages 'DiGi\.Laya\.Classes\.LayaTrainingResult\.Messages'): an interpreter that does not resolve ([LayaPythonPath\(string\)](DiGi.Laya.md#DiGi.Laya.Query.LayaPythonPath(string) 'DiGi\.Laya\.Query\.LayaPythonPath\(string\)')); a base that is not a checkpoint directory ([LayaModelPath\(string\)](DiGi.Laya.md#DiGi.Laya.Query.LayaModelPath(string) 'DiGi\.Laya\.Query\.LayaModelPath\(string\)'); a model name or Hub id is never downloaded); a training or evaluation file that does not exist; no output directory, or one that is inside a Laya\models or DiGi.Laya\models folder ([IsInsideModelsDirectory\(string\)](DiGi.Laya.md#DiGi.Laya.Query.IsInsideModelsDirectory(string) 'DiGi\.Laya\.Query\.IsInsideModelsDirectory\(string\)') - training never writes where deployed checkpoints live), not empty, or the base checkpoint or inside it.
 
 The scripts and train_config.json ([ToLaya\_TrainConfiguration\(this LayaTrainingOptions\)](DiGi.Laya.md#DiGi.Laya.Convert.ToLaya_TrainConfiguration(thisDiGi.Laya.Classes.LayaTrainingOptions) 'DiGi\.Laya\.Convert\.ToLaya\_TrainConfiguration\(this DiGi\.Laya\.Classes\.LayaTrainingOptions\)')) are written to the working directory, the base checkpoint is hashed, and train.py runs once, offline, with the options' limits ([PythonProcessResult\(string, string, string, Nullable&lt;TimeSpan&gt;, Nullable&lt;TimeSpan&gt;, CancellationToken\)](DiGi.Laya.md#DiGi.Laya.Query.PythonProcessResult(string,string,string,System.Nullable_System.TimeSpan_,System.Nullable_System.TimeSpan_,System.Threading.CancellationToken) 'DiGi\.Laya\.Query\.PythonProcessResult\(string, string, string, System\.Nullable\<System\.TimeSpan\>, System\.Nullable\<System\.TimeSpan\>, System\.Threading\.CancellationToken\)')). finetune holds out the calibration slice and writes the fitted temperatures into the new checkpoint; train.py removes the checkpoint_latest copy and prints its report between [TrainJsonBegin](DiGi.Laya.Constants.md#DiGi.Laya.Constants.Marker.TrainJsonBegin 'DiGi\.Laya\.Constants\.Marker\.TrainJsonBegin') and [TrainJsonEnd](DiGi.Laya.Constants.md#DiGi.Laya.Constants.Marker.TrainJsonEnd 'DiGi\.Laya\.Constants\.Marker\.TrainJsonEnd').
 
@@ -641,9 +641,9 @@ The command line, or `null` when a path is blank\.
 
 ## Query\.IsInsideModelsDirectory\(string\) Method
 
-Checks whether a path is a Laya\\models folder or lies anywhere inside one \- where deployed checkpoints live, which no training run may write into\.
+Checks whether a path is a Laya\\models or DiGi\.Laya\\models folder, or lies anywhere inside one \- where deployed checkpoints live, which no training run may write into\.
 
-The path is made absolute first and compared with a trailing separator, case-insensitively, so "...\Laya\models" itself and "...\laya\MODELS\run" both count while a sibling such as "...\Laya\models_old" does not. The same guard as DiGi.YOLO's for YOLO\models: a training output written where a deploy reads ships an untested checkpoint.
+The path is made absolute first and compared with a trailing separator, case-insensitively, so "...\Laya\models" itself and "...\laya\MODELS\run" both count while a sibling such as "...\Laya\models_old" does not. Both folder names are guarded: Laya\models ([Laya](DiGi.Laya.Constants.md#DiGi.Laya.Constants.DirectoryName.Laya 'DiGi\.Laya\.Constants\.DirectoryName\.Laya')) and DiGi.Laya\models ([DiGiLaya](DiGi.Laya.Constants.md#DiGi.Laya.Constants.DirectoryName.DiGiLaya 'DiGi\.Laya\.Constants\.DirectoryName\.DiGiLaya')), the software destination DiGi.Maintenance's DeployLaya.ps1 deploys checkpoints to - a match on the Laya segment alone misses the latter, whose "Laya" follows a dot rather than a separator. The same guard as DiGi.YOLO's for YOLO\models: a training output written where a deploy reads ships an untested checkpoint.
 
 A relative path is resolved against the current directory of the calling process. A null, blank or unformable path returns `false`: it names no folder, and every caller refuses such a path for its own reason.
 
@@ -660,7 +660,7 @@ The directory path to check\.
 
 #### Returns
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
-`true` when the path is, or lies inside, a Laya\\models folder; otherwise `false`\.
+`true` when the path is, or lies inside, a Laya\\models or DiGi\.Laya\\models folder; otherwise `false`\.
 
 <a name='DiGi.Laya.Query.LayaClassificationResults(DiGi.Laya.Classes.LayaPredictionResult,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaLabelSet_,DiGi.Laya.Classes.LayaClassificationOptions)'></a>
 

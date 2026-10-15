@@ -55,6 +55,19 @@ public static class DirectoryName
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → DirectoryName
 ### Fields
 
+<a name='DiGi.Laya.Constants.DirectoryName.DiGiLaya'></a>
+
+## DirectoryName\.DiGiLaya Field
+
+The software destination DiGi\.Maintenance's DeployLaya\.ps1 deploys the Laya runtime package and released checkpoints to: \<SOFTWARE\_DIRECTORY\>\\DiGi\.Laya\\models\\\<name\>\.
+
+```csharp
+public const string DiGiLaya = "DiGi.Laya";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.Laya.Constants.DirectoryName.Laya'></a>
 
 ## DirectoryName\.Laya Field

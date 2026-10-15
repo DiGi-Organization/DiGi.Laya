@@ -11,6 +11,11 @@ namespace DiGi.Laya.Constants
         public const string Laya = "Laya";
 
         /// <summary>
+        /// The software destination DiGi.Maintenance's DeployLaya.ps1 deploys the Laya runtime package and released checkpoints to: &lt;SOFTWARE_DIRECTORY&gt;\DiGi.Laya\models\&lt;name&gt;.
+        /// </summary>
+        public const string DiGiLaya = "DiGi.Laya";
+
+        /// <summary>
         /// The folder under Laya that deployed checkpoints live in; <see cref="Query.IsInsideModelsDirectory(string?)"/> keeps training outputs out of it.
         /// </summary>
         public const string Models = "models";
