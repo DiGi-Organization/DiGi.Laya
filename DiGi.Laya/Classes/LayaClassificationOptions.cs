@@ -9,6 +9,7 @@ namespace DiGi.Laya.Classes
     /// <summary>
     /// Provides the decision rules that turn Laya's probabilities into suggested labels.
     /// <para>A label set without a <see cref="LayaLabelSetThreshold"/> suggests the single most probable label of a single-choice set, and every label of a multi-label set with a probability of 0.5 or more.</para>
+    /// <para>A multi-label label takes the threshold of the rule naming it (<see cref="LayaLabelSetThreshold.LabelId"/>), else of the rule of its set, else 0.5. A rule naming an unknown set or label is reported as a warning by <see cref="Modify.ClassifyAsync(System.Collections.Generic.IEnumerable{LayaItem}?, System.Collections.Generic.IEnumerable{LayaLabelSet}?, LayaClassificationOptions?, LayaPredictionOptions?, System.Collections.Generic.IEnumerable{LayaLabelConstraint}?, System.Threading.CancellationToken)"/>.</para>
     /// </summary>
     public class LayaClassificationOptions : SerializableOptions, ILayaSerializableObject
     {

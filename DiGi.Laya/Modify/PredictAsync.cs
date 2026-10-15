@@ -19,7 +19,7 @@ namespace DiGi.Laya
         /// <summary>
         /// Answers Laya requests with a local checkpoint in one CPython run of predict.py and reads the responses back.
         /// <para>Each request is written as one line of requests.jsonl by <see cref="Convert.ToLaya_JsonObject(LayaRequest?)"/>, with the options' token budgets filled in where the request sets none. The scripts are rewritten into the working directory on every run, a responses.jsonl left by an earlier run is deleted before the process starts so it can never be read as this run's answer, and predict.py runs once, offline, through <see cref="Query.PythonProcessResult(string, string, string, TimeSpan?, TimeSpan?, CancellationToken)"/> with the options' inactivity and overall limits. Responses are read with <see cref="Convert.ToDiGi_LayaResponse(JsonObject?)"/> and matched to the requests by <see cref="LayaRequest.Id"/>.</para>
-        /// <para>Nothing is reported by an exception. A request that cannot be written (no id, no usable state, no questions, a question Laya would refuse) is left out and named in <see cref="LayaPredictionResult.Messages"/>, and the others still run; a request laya refuses, gets no response, misses an answer or was truncated to fit the token budget is named there too. Ids used twice, an interpreter or checkpoint that does not resolve (<see cref="Query.LayaModelPath(string?)"/>; a model name or Hub id is refused, never downloaded) or a calibration file that does not exist refuse the whole run before a process starts. No requests at all is answered with an empty result without starting one.</para>
+        /// <para>Nothing is reported by an exception. A request that cannot be written (no id, no usable state, no questions, a question Laya would refuse) is left out and named in <see cref="LayaPredictionResult.Messages"/>, and the others still run; a request laya refuses, gets no response, misses an answer or was truncated to fit the token budget is named there too. Each such finding about a request with an id is also kept with that id in <see cref="LayaPredictionResult.RequestMessages"/>, so a caller never has to read the id back out of the text. Ids used twice, an interpreter or checkpoint that does not resolve (<see cref="Query.LayaModelPath(string?)"/>; a model name or Hub id is refused, never downloaded) or a calibration file that does not exist refuse the whole run before a process starts. No requests at all is answered with an empty result without starting one.</para>
         /// <para>The process runs on a worker thread, so awaiting this does not block the caller. Cancelling, the overall limit and the inactivity limit each end the interpreter together with every process it started, and are told apart by <see cref="LayaPredictionResult.Cancelled"/>, <see cref="LayaPredictionResult.TimedOut"/> and <see cref="LayaPredictionResult.Stalled"/>. Without a working directory a temporary one is used and removed afterwards.</para>
         /// </summary>
         /// <param name="layaRequests">The requests to answer.</param>
@@ -38,15 +38,22 @@ namespace DiGi.Laya
             LayaPredictionResult Predict()
             {
                 List<string> messages = [];
+                List<LayaRequestMessage> requestMessages = [];
+
+                void AddRequestMessage(string requestId, string message)
+                {
+                    messages.Add(message);
+                    requestMessages.Add(new LayaRequestMessage(requestId, message));
+                }
 
                 LayaPredictionResult Refused()
                 {
-                    return new LayaPredictionResult([], null, null, null, -1, false, false, false, messages);
+                    return new LayaPredictionResult([], null, null, null, -1, false, false, false, messages, requestMessages);
                 }
 
                 if (layaRequests_All.Count == 0)
                 {
-                    return new LayaPredictionResult([], null, null, null, 0, false, false, false, messages);
+                    return new LayaPredictionResult([], null, null, null, 0, false, false, false, messages, requestMessages);
                 }
 
                 foreach (IGrouping<string, LayaRequest> grouping in layaRequests_All.Where(x => !string.IsNullOrWhiteSpace(x.Id)).GroupBy(x => x.Id!, StringComparer.Ordinal).Where(x => x.Count() > 1))
@@ -73,7 +80,7 @@ namespace DiGi.Laya
                     JsonObject? jsonObject = layaRequest.ToLaya_JsonObject();
                     if (jsonObject == null)
                     {
-                        messages.Add(string.Format(CultureInfo.InvariantCulture, "The request '{0}' was left out: it has no usable state, no questions, two questions of one name, or a question Laya would refuse.", layaRequest.Id));
+                        AddRequestMessage(layaRequest.Id!, string.Format(CultureInfo.InvariantCulture, "The request '{0}' was left out: it has no usable state, no questions, two questions of one name, or a question Laya would refuse.", layaRequest.Id));
                         continue;
                     }
 
@@ -213,7 +220,7 @@ namespace DiGi.Laya
                             if (jsonObject["error"] is JsonNode jsonNode_Error)
                             {
                                 ids_Refused.Add(id);
-                                messages.Add(string.Format(CultureInfo.InvariantCulture, "The request '{0}' was refused by Laya: {1}", id, jsonNode_Error is JsonValue jsonValue_Error && jsonValue_Error.GetValueKind() == JsonValueKind.String ? jsonValue_Error.GetValue<string>() : jsonNode_Error.ToJsonString()));
+                                AddRequestMessage(id, string.Format(CultureInfo.InvariantCulture, "The request '{0}' was refused by Laya: {1}", id, jsonNode_Error is JsonValue jsonValue_Error && jsonValue_Error.GetValueKind() == JsonValueKind.String ? jsonValue_Error.GetValue<string>() : jsonNode_Error.ToJsonString()));
                                 continue;
                             }
 
@@ -233,7 +240,7 @@ namespace DiGi.Laya
                             //A run that wrote no responses file has already been reported as a whole, and a refused request by its error
                             if (responsesWritten && !ids_Refused.Contains(layaRequest.Id!))
                             {
-                                messages.Add(string.Format(CultureInfo.InvariantCulture, "The request '{0}' got no response.", layaRequest.Id));
+                                AddRequestMessage(layaRequest.Id!, string.Format(CultureInfo.InvariantCulture, "The request '{0}' got no response.", layaRequest.Id));
                             }
 
                             continue;
@@ -243,18 +250,18 @@ namespace DiGi.Laya
                         List<string> names_Missing = [.. layaRequest.Questions!.Select(x => x.Name!).Where(x => !names.Contains(x))];
                         if (names_Missing.Count != 0)
                         {
-                            messages.Add(string.Format(CultureInfo.InvariantCulture, "The request '{0}' got no answer to: {1}.", layaRequest.Id, string.Join(", ", names_Missing)));
+                            AddRequestMessage(layaRequest.Id!, string.Format(CultureInfo.InvariantCulture, "The request '{0}' got no answer to: {1}.", layaRequest.Id, string.Join(", ", names_Missing)));
                         }
 
                         if (layaResponse.Truncated == true)
                         {
-                            messages.Add(string.Format(CultureInfo.InvariantCulture, "The request '{0}' was truncated to fit the token budget and was answered from part of its input.", layaRequest.Id));
+                            AddRequestMessage(layaRequest.Id!, string.Format(CultureInfo.InvariantCulture, "The request '{0}' was truncated to fit the token budget and was answered from part of its input.", layaRequest.Id));
                         }
 
                         layaResponses.Add(layaResponse);
                     }
 
-                    return new LayaPredictionResult(layaResponses, modelSHA256, calibrationSHA256, stopwatch.Elapsed, exitCode, stalled, timedOut, cancelled, messages);
+                    return new LayaPredictionResult(layaResponses, modelSHA256, calibrationSHA256, stopwatch.Elapsed, exitCode, stalled, timedOut, cancelled, messages, requestMessages);
                 }
                 catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
                 {

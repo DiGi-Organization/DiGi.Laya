@@ -11,7 +11,7 @@ namespace DiGi.Laya
     {
         /// <summary>
         /// Turns the responses of a prediction run into one classification result per response: a score per label and which labels are suggested.
-        /// <para>Pure C#. The answers are found by <see cref="LayaQuestionName(string?, string?)"/>. A single-choice set scores every label with its option probability and suggests the <see cref="LayaLabelSetThreshold.TopCount"/> most probable (1 by default; ties go to the earlier label). A multi-label set scores every label with the probability its noul statement is true and suggests each label at or above <see cref="LayaLabelSetThreshold.Threshold"/> (0.5 by default). An answer whose <see cref="LayaAnswer.Confidence"/> is below <see cref="LayaClassificationOptions.MinimumConfidence"/>, or that reports none while a floor is set, suggests nothing but keeps its scores.</para>
+        /// <para>Pure C#. The answers are found by <see cref="LayaQuestionName(string?, string?)"/>. A single-choice set scores every label with its option probability and suggests the <see cref="LayaLabelSetThreshold.TopCount"/> most probable (1 by default; ties go to the earlier label). A multi-label set scores every label with the probability its noul statement is true and suggests each label at or above its threshold: that of the <see cref="LayaLabelSetThreshold"/> naming the label (<see cref="LayaLabelSetThreshold.LabelId"/>), else that of its set's rule, else 0.5. An answer whose <see cref="LayaAnswer.Confidence"/> is below <see cref="LayaClassificationOptions.MinimumConfidence"/>, or that reports none while a floor is set, suggests nothing but keeps its scores.</para>
         /// <para>A label set or label without an answer, a label missing from a choice answer, and a request Laya truncated are named in <see cref="LayaClassificationResult.Messages"/>; the scores that could be read are kept. No constraint is applied here - see <see cref="Modify.ApplyConstraints(LayaClassificationResult?, IEnumerable{LayaLabelConstraint}?)"/>.</para>
         /// </summary>
         /// <param name="layaPredictionResult">The prediction run whose responses are read.</param>
@@ -27,12 +27,29 @@ namespace DiGi.Laya
 
             List<LayaLabelSet> layaLabelSets_All = [.. layaLabelSets.OfType<LayaLabelSet>()];
 
+            //Set-level rules by set id and label-level rules by set id and label id; the first of each key wins
             Dictionary<string, LayaLabelSetThreshold> layaLabelSetThresholds = new(StringComparer.Ordinal);
+            Dictionary<(string, string), LayaLabelSetThreshold> layaLabelSetThresholds_Label = [];
             foreach (LayaLabelSetThreshold layaLabelSetThreshold in layaClassificationOptions?.Thresholds?.OfType<LayaLabelSetThreshold>() ?? [])
             {
-                if (layaLabelSetThreshold.LabelSetId != null && !layaLabelSetThresholds.ContainsKey(layaLabelSetThreshold.LabelSetId))
+                if (layaLabelSetThreshold.LabelSetId == null)
                 {
-                    layaLabelSetThresholds[layaLabelSetThreshold.LabelSetId] = layaLabelSetThreshold;
+                    continue;
+                }
+
+                if (layaLabelSetThreshold.LabelId == null)
+                {
+                    if (!layaLabelSetThresholds.ContainsKey(layaLabelSetThreshold.LabelSetId))
+                    {
+                        layaLabelSetThresholds[layaLabelSetThreshold.LabelSetId] = layaLabelSetThreshold;
+                    }
+                }
+                else
+                {
+                    if (!layaLabelSetThresholds_Label.ContainsKey((layaLabelSetThreshold.LabelSetId, layaLabelSetThreshold.LabelId)))
+                    {
+                        layaLabelSetThresholds_Label[(layaLabelSetThreshold.LabelSetId, layaLabelSetThreshold.LabelId)] = layaLabelSetThreshold;
+                    }
                 }
             }
 
@@ -113,9 +130,19 @@ namespace DiGi.Laya
                     }
                     else
                     {
-                        double threshold = layaLabelSetThreshold?.Threshold ?? 0.5;
                         foreach (LayaLabel layaLabel in layaLabels)
                         {
+                            //The label's own rule, then the set's, then 0.5; a label-level rule without a threshold falls through to the set's
+                            double threshold = 0.5;
+                            if (layaLabelSet.Id != null && layaLabel.Id != null && layaLabelSetThresholds_Label.TryGetValue((layaLabelSet.Id, layaLabel.Id), out LayaLabelSetThreshold? layaLabelSetThreshold_Label) && layaLabelSetThreshold_Label.Threshold != null)
+                            {
+                                threshold = layaLabelSetThreshold_Label.Threshold.Value;
+                            }
+                            else if (layaLabelSetThreshold?.Threshold != null)
+                            {
+                                threshold = layaLabelSetThreshold.Threshold.Value;
+                            }
+
                             string? name = LayaQuestionName(layaLabelSet.Id, layaLabel.Id);
                             if (name == null || !layaAnswers.TryGetValue(name, out LayaAnswer? layaAnswer) || layaAnswer is not LayaNoulAnswer layaNoulAnswer || layaNoulAnswer.Probability == null)
                             {

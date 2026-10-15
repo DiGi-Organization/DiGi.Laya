@@ -34,7 +34,7 @@ namespace DiGi.Laya.Classes
         /// <param name="scores">The scores, label set by label set in set order, labels in label order.</param>
         /// <param name="modelSHA256">The SHA-256 of the checkpoint directory that scored the item.</param>
         /// <param name="createdAt">The moment the result was made.</param>
-        /// <param name="messages">The findings about the item: no response, a missing answer, a truncated request, a refused or oversized label set.</param>
+        /// <param name="messages">The findings about this item only: no response, left out of the run, refused by laya, a missing answer, a truncated request. Findings about the whole run are in <see cref="LayaClassificationRunResult.Messages"/>.</param>
         public LayaClassificationResult(string? itemId, IEnumerable<LayaLabelScore>? scores, string? modelSHA256, DateTimeOffset? createdAt, IEnumerable<string>? messages)
         {
             this.itemId = itemId;
@@ -106,7 +106,8 @@ namespace DiGi.Laya.Classes
         }
 
         /// <summary>
-        /// Gets the findings about the item: no response, a missing answer, a truncated request, a refused or oversized label set.
+        /// Gets the findings about this item only: no response, left out of the run, refused by laya, a missing answer, a truncated request.
+        /// <para>Findings about the whole run - a refused or oversized label set, the process exit, a time limit - are in <see cref="LayaClassificationRunResult.Messages"/> and are not repeated here.</para>
         /// </summary>
         [JsonIgnore]
         public List<string>? Messages

@@ -9,7 +9,7 @@ namespace DiGi.Laya.Classes
 {
     /// <summary>
     /// Represents how a Laya prediction run went: the responses it produced and every finding about the run and the requests.
-    /// <para>A run is never reported by an exception. A request that could not be written, was refused by laya or got no response is named in <see cref="Messages"/>, and the responses of the others are kept.</para>
+    /// <para>A run is never reported by an exception. A request that could not be written, was refused by laya or got no response is named in <see cref="Messages"/>, and the responses of the others are kept. Every finding about one request is also kept, with that request's identifier, in <see cref="RequestMessages"/>.</para>
     /// </summary>
     public class LayaPredictionResult : SerializableResult, ILayaSerializableObject
     {
@@ -30,6 +30,9 @@ namespace DiGi.Laya.Classes
 
         [JsonInclude, JsonPropertyName(nameof(ModelSHA256))]
         private readonly string? modelSHA256;
+
+        [JsonInclude, JsonPropertyName(nameof(RequestMessages))]
+        private readonly List<LayaRequestMessage>? requestMessages;
 
         [JsonInclude, JsonPropertyName(nameof(Responses))]
         private readonly List<LayaResponse>? responses;
@@ -52,6 +55,7 @@ namespace DiGi.Laya.Classes
         /// <param name="timedOut">A value indicating whether the process was ended by the overall time limit.</param>
         /// <param name="cancelled">A value indicating whether the caller cancelled the run.</param>
         /// <param name="messages">The findings about the run and the requests.</param>
+        /// <param name="requestMessages">The findings about one request each, with the identifier of that request; each is also one of <paramref name="messages"/>.</param>
         public LayaPredictionResult(
             IEnumerable<LayaResponse>? responses,
             string? modelSHA256,
@@ -61,7 +65,8 @@ namespace DiGi.Laya.Classes
             bool stalled,
             bool timedOut,
             bool cancelled,
-            IEnumerable<string>? messages)
+            IEnumerable<string>? messages,
+            IEnumerable<LayaRequestMessage>? requestMessages)
         {
             this.responses = responses == null ? null : [.. responses];
             this.modelSHA256 = modelSHA256;
@@ -72,6 +77,7 @@ namespace DiGi.Laya.Classes
             this.timedOut = timedOut;
             this.cancelled = cancelled;
             this.messages = messages == null ? null : [.. messages];
+            this.requestMessages = requestMessages == null ? null : [.. requestMessages];
         }
 
         /// <summary>
@@ -91,6 +97,18 @@ namespace DiGi.Laya.Classes
                 modelSHA256 = layaPredictionResult.modelSHA256;
                 stalled = layaPredictionResult.stalled;
                 timedOut = layaPredictionResult.timedOut;
+
+                if (layaPredictionResult.requestMessages != null)
+                {
+                    requestMessages = [];
+                    foreach (LayaRequestMessage layaRequestMessage in layaPredictionResult.requestMessages)
+                    {
+                        if (Core.Query.Clone(layaRequestMessage) is LayaRequestMessage layaRequestMessage_Clone)
+                        {
+                            requestMessages.Add(layaRequestMessage_Clone);
+                        }
+                    }
+                }
 
                 if (layaPredictionResult.responses != null)
                 {
@@ -165,6 +183,7 @@ namespace DiGi.Laya.Classes
 
         /// <summary>
         /// Gets the findings about the run and the requests.
+        /// <para>Every finding about one request is also in <see cref="RequestMessages"/>; the others concern the run as a whole.</para>
         /// </summary>
         [JsonIgnore]
         public List<string>? Messages
@@ -184,6 +203,19 @@ namespace DiGi.Laya.Classes
             get
             {
                 return modelSHA256;
+            }
+        }
+
+        /// <summary>
+        /// Gets the findings about one request each, with the identifier of that request: a request left out, refused by laya, without a response, missing an answer or truncated.
+        /// <para>Each is also one of <see cref="Messages"/>, which is kept whole for compatibility. A finding that names no request of the run - a refused run, the process exit, a time limit, a response line answering no request - is only in <see cref="Messages"/>.</para>
+        /// </summary>
+        [JsonIgnore]
+        public List<LayaRequestMessage>? RequestMessages
+        {
+            get
+            {
+                return requestMessages;
             }
         }
 

@@ -911,6 +911,8 @@ Provides the decision rules that turn Laya's probabilities into suggested labels
 
 A label set without a [LayaLabelSetThreshold](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold') suggests the single most probable label of a single-choice set, and every label of a multi-label set with a probability of 0.5 or more.
 
+A multi-label label takes the threshold of the rule naming it ([LabelId](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold.LabelId 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold\.LabelId')), else of the rule of its set, else 0.5. A rule naming an unknown set or label is reported as a warning by [ClassifyAsync\(this IEnumerable&lt;LayaItem&gt;, IEnumerable&lt;LayaLabelSet&gt;, LayaClassificationOptions, LayaPredictionOptions, IEnumerable&lt;LayaLabelConstraint&gt;, CancellationToken\)](DiGi.Laya.md#DiGi.Laya.Modify.ClassifyAsync(thisSystem.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaItem_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaLabelSet_,DiGi.Laya.Classes.LayaClassificationOptions,DiGi.Laya.Classes.LayaPredictionOptions,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaLabelConstraint_,System.Threading.CancellationToken) 'DiGi\.Laya\.Modify\.ClassifyAsync\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.Laya\.Classes\.LayaItem\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.Laya\.Classes\.LayaLabelSet\>, DiGi\.Laya\.Classes\.LayaClassificationOptions, DiGi\.Laya\.Classes\.LayaPredictionOptions, System\.Collections\.Generic\.IEnumerable\<DiGi\.Laya\.Classes\.LayaLabelConstraint\>, System\.Threading\.CancellationToken\)').
+
 ```csharp
 public class LayaClassificationOptions : DiGi.Core.Classes.SerializableOptions, DiGi.Laya.Interfaces.ILayaSerializableObject, DiGi.Laya.Interfaces.ILayaObject, DiGi.Core.Interfaces.IObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject
 ```
@@ -1064,7 +1066,7 @@ The moment the result was made\.
 
 `messages` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
-The findings about the item: no response, a missing answer, a truncated request, a refused or oversized label set\.
+The findings about this item only: no response, left out of the run, refused by laya, a missing answer, a truncated request\. Findings about the whole run are in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.Messages 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.Messages')\.
 
 <a name='DiGi.Laya.Classes.LayaClassificationResult.LayaClassificationResult(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -1114,7 +1116,9 @@ public string? ItemId { get; }
 
 ## LayaClassificationResult\.Messages Property
 
-Gets the findings about the item: no response, a missing answer, a truncated request, a refused or oversized label set\.
+Gets the findings about this item only: no response, left out of the run, refused by laya, a missing answer, a truncated request\.
+
+Findings about the whole run - a refused or oversized label set, the process exit, a time limit - are in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.Messages 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.Messages') and are not repeated here.
 
 ```csharp
 public System.Collections.Generic.List<string>? Messages { get; }
@@ -1148,6 +1152,242 @@ public System.Collections.Generic.List<DiGi.Laya.Classes.LayaLabelScore>? Scores
 
 #### Property Value
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[LayaLabelScore](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelScore 'DiGi\.Laya\.Classes\.LayaLabelScore')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult'></a>
+
+## LayaClassificationRunResult Class
+
+Represents how a classification run went: one result per item, the status of the prediction run behind them and the findings about the run as a whole\.
+
+The run status tells a run that answered apart from one that did not without reading message text: a run that was refused before a process started has no [Duration](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.Duration 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.Duration') and an [ExitCode](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.ExitCode 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.ExitCode') of -1, and a process that failed or was ended has a non-zero [ExitCode](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.ExitCode 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.ExitCode') or sets [Stalled](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.Stalled 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.Stalled'), [TimedOut](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.TimedOut 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.TimedOut') or [Cancelled](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.Cancelled 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.Cancelled'). A run that answered with no suggested label still has [ExitCode](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult.ExitCode 'DiGi\.Laya\.Classes\.LayaClassificationRunResult\.ExitCode') 0.
+
+```csharp
+public class LayaClassificationRunResult : DiGi.Core.Classes.SerializableResult, DiGi.Laya.Interfaces.ILayaSerializableObject, DiGi.Laya.Interfaces.ILayaObject, DiGi.Core.Interfaces.IObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → LayaClassificationRunResult
+
+Implements [ILayaSerializableObject](DiGi.Laya.Interfaces.md#DiGi.Laya.Interfaces.ILayaSerializableObject 'DiGi\.Laya\.Interfaces\.ILayaSerializableObject'), [ILayaObject](DiGi.Laya.Interfaces.md#DiGi.Laya.Interfaces.ILayaObject 'DiGi\.Laya\.Interfaces\.ILayaObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject')
+### Constructors
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(DiGi.Laya.Classes.LayaClassificationRunResult)'></a>
+
+## LayaClassificationRunResult\(LayaClassificationRunResult\) Constructor
+
+Initializes a new instance of the [LayaClassificationRunResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult 'DiGi\.Laya\.Classes\.LayaClassificationRunResult') class by copying an existing result\.
+
+```csharp
+public LayaClassificationRunResult(DiGi.Laya.Classes.LayaClassificationRunResult? layaClassificationRunResult);
+```
+#### Parameters
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(DiGi.Laya.Classes.LayaClassificationRunResult).layaClassificationRunResult'></a>
+
+`layaClassificationRunResult` [LayaClassificationRunResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult 'DiGi\.Laya\.Classes\.LayaClassificationRunResult')
+
+The source result to copy from\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_)'></a>
+
+## LayaClassificationRunResult\(IEnumerable\<LayaClassificationResult\>, string, string, Nullable\<TimeSpan\>, int, bool, bool, bool, IEnumerable\<string\>\) Constructor
+
+Initializes a new instance of the [LayaClassificationRunResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult 'DiGi\.Laya\.Classes\.LayaClassificationRunResult') class\.
+
+```csharp
+public LayaClassificationRunResult(System.Collections.Generic.IEnumerable<DiGi.Laya.Classes.LayaClassificationResult>? results, string? modelSHA256, string? calibrationSHA256, System.Nullable<System.TimeSpan> duration, int exitCode, bool stalled, bool timedOut, bool cancelled, System.Collections.Generic.IEnumerable<string>? messages);
+```
+#### Parameters
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).results'></a>
+
+`results` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[LayaClassificationResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationResult 'DiGi\.Laya\.Classes\.LayaClassificationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The classification results, one per item in item order\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).modelSHA256'></a>
+
+`modelSHA256` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The SHA\-256 of the checkpoint directory the run used, or `null` when no process was started\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).calibrationSHA256'></a>
+
+`calibrationSHA256` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The SHA\-256 of the calibration file the run used, or `null` when it used none\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).duration'></a>
+
+`duration` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.TimeSpan](https://learn.microsoft.com/en-us/dotnet/api/system.timespan 'System\.TimeSpan')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The wall\-clock time of the prediction run, or `null` when no process was started\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).exitCode'></a>
+
+`exitCode` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The exit code of predict\.py; \-1 when the process was ended, failed to start or was never started\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).stalled'></a>
+
+`stalled` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the process was ended for inactivity\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).timedOut'></a>
+
+`timedOut` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the process was ended by the overall time limit\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).cancelled'></a>
+
+`cancelled` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the caller cancelled the run\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaClassificationResult_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).messages'></a>
+
+`messages` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The findings about the run as a whole: a refused label set, a label set warning, a refused prediction run, the process exit or a time limit\.
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## LayaClassificationRunResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [LayaClassificationRunResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationRunResult 'DiGi\.Laya\.Classes\.LayaClassificationRunResult') class using a JSON object\.
+
+```csharp
+public LayaClassificationRunResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.LayaClassificationRunResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object containing the result data\.
+### Properties
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.CalibrationSHA256'></a>
+
+## LayaClassificationRunResult\.CalibrationSHA256 Property
+
+Gets the SHA\-256 of the calibration file the run used, or `null` when it used none\.
+
+```csharp
+public string? CalibrationSHA256 { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.Cancelled'></a>
+
+## LayaClassificationRunResult\.Cancelled Property
+
+Gets a value indicating whether the caller cancelled the run\.
+
+```csharp
+public bool Cancelled { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.Duration'></a>
+
+## LayaClassificationRunResult\.Duration Property
+
+Gets the wall\-clock time of the prediction run, or `null` when no process was started\.
+
+```csharp
+public System.Nullable<System.TimeSpan> Duration { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.TimeSpan](https://learn.microsoft.com/en-us/dotnet/api/system.timespan 'System\.TimeSpan')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.ExitCode'></a>
+
+## LayaClassificationRunResult\.ExitCode Property
+
+Gets the exit code of predict\.py; \-1 when the process was ended, failed to start or was never started\.
+
+```csharp
+public int ExitCode { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.Messages'></a>
+
+## LayaClassificationRunResult\.Messages Property
+
+Gets the findings about the run as a whole: a refused label set, a label set warning, a refused prediction run, the process exit or a time limit\.
+
+A finding about one item is in that item's [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationResult.Messages 'DiGi\.Laya\.Classes\.LayaClassificationResult\.Messages') instead, and is not repeated here.
+
+```csharp
+public System.Collections.Generic.List<string>? Messages { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.ModelSHA256'></a>
+
+## LayaClassificationRunResult\.ModelSHA256 Property
+
+Gets the SHA\-256 of the checkpoint directory the run used \(DiGi\.Python's `Query.DirectorySHA256`\), or `null` when no process was started\.
+
+```csharp
+public string? ModelSHA256 { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.Results'></a>
+
+## LayaClassificationRunResult\.Results Property
+
+Gets the classification results, one per item in item order; empty when the label sets were refused\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.Laya.Classes.LayaClassificationResult>? Results { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[LayaClassificationResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationResult 'DiGi\.Laya\.Classes\.LayaClassificationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.Stalled'></a>
+
+## LayaClassificationRunResult\.Stalled Property
+
+Gets a value indicating whether the process was ended for inactivity\.
+
+```csharp
+public bool Stalled { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.Laya.Classes.LayaClassificationRunResult.TimedOut'></a>
+
+## LayaClassificationRunResult\.TimedOut Property
+
+Gets a value indicating whether the process was ended by the overall time limit\.
+
+```csharp
+public bool TimedOut { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
 <a name='DiGi.Laya.Classes.LayaConfusionRow'></a>
 
@@ -3028,7 +3268,9 @@ public System.Nullable<double> Top3Accuracy { get; }
 
 ## LayaLabelSetThreshold Class
 
-Represents the decision rule of one label set in [LayaClassificationOptions](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationOptions 'DiGi\.Laya\.Classes\.LayaClassificationOptions')\.
+Represents the decision rule of one label set, or of one label of a multi\-label set, in [LayaClassificationOptions](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaClassificationOptions 'DiGi\.Laya\.Classes\.LayaClassificationOptions')\.
+
+A rule without a [LabelId](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold.LabelId 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold\.LabelId') is the rule of the whole set. A rule with one is the rule of that label of a multi-label set and wins over the set's rule for it; only its [Threshold](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold.Threshold 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold\.Threshold') is used - a label-level [TopCount](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold.TopCount 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold\.TopCount') is ignored, because the number of labels suggested is a setting of the whole set.
 
 ```csharp
 public class LayaLabelSetThreshold : DiGi.Core.Classes.SerializableObject, DiGi.Laya.Interfaces.ILayaSerializableObject, DiGi.Laya.Interfaces.ILayaObject, DiGi.Core.Interfaces.IObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject
@@ -3056,34 +3298,40 @@ public LayaLabelSetThreshold(DiGi.Laya.Classes.LayaLabelSetThreshold? layaLabelS
 
 The source instance to copy from\.
 
-<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,System.Nullable_double_,System.Nullable_int_)'></a>
+<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,string,System.Nullable_double_,System.Nullable_int_)'></a>
 
-## LayaLabelSetThreshold\(string, Nullable\<double\>, Nullable\<int\>\) Constructor
+## LayaLabelSetThreshold\(string, string, Nullable\<double\>, Nullable\<int\>\) Constructor
 
 Initializes a new instance of the [LayaLabelSetThreshold](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold') class\.
 
 ```csharp
-public LayaLabelSetThreshold(string? labelSetId, System.Nullable<double> threshold, System.Nullable<int> topCount);
+public LayaLabelSetThreshold(string? labelSetId, string? labelId, System.Nullable<double> threshold, System.Nullable<int> topCount);
 ```
 #### Parameters
 
-<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,System.Nullable_double_,System.Nullable_int_).labelSetId'></a>
+<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,string,System.Nullable_double_,System.Nullable_int_).labelSetId'></a>
 
 `labelSetId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The identifier of the label set the rule applies to\.
 
-<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,System.Nullable_double_,System.Nullable_int_).threshold'></a>
+<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,string,System.Nullable_double_,System.Nullable_int_).labelId'></a>
+
+`labelId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identifier of the label of a multi\-label set the rule applies to, or `null` for a rule of the whole set\.
+
+<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,string,System.Nullable_double_,System.Nullable_int_).threshold'></a>
 
 `threshold` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The probability a label of a multi\-label set must reach to be suggested, or `null` for 0\.5\.
+The probability a label of a multi\-label set must reach to be suggested, or `null` for the set's rule, else 0\.5\.
 
-<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,System.Nullable_double_,System.Nullable_int_).topCount'></a>
+<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,string,System.Nullable_double_,System.Nullable_int_).topCount'></a>
 
 `topCount` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The number of labels of a single\-choice set suggested, highest probability first, or `null` for 1\.
+The number of labels of a single\-choice set suggested, highest probability first, or `null` for 1\. Ignored when [labelId](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(string,string,System.Nullable_double_,System.Nullable_int_).labelId 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold\.LayaLabelSetThreshold\(string, string, System\.Nullable\<double\>, System\.Nullable\<int\>\)\.labelId') is set\.
 
 <a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LayaLabelSetThreshold(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -3103,6 +3351,19 @@ public LayaLabelSetThreshold(System.Text.Json.Nodes.JsonObject? jsonObject);
 The JSON object containing the data\.
 ### Properties
 
+<a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LabelId'></a>
+
+## LayaLabelSetThreshold\.LabelId Property
+
+Gets the identifier of the label of a multi\-label set the rule applies to, or `null` for a rule of the whole set\.
+
+```csharp
+public string? LabelId { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.Laya.Classes.LayaLabelSetThreshold.LabelSetId'></a>
 
 ## LayaLabelSetThreshold\.LabelSetId Property
@@ -3120,7 +3381,7 @@ public string? LabelSetId { get; }
 
 ## LayaLabelSetThreshold\.Threshold Property
 
-Gets the probability a label of a multi\-label set must reach to be suggested, or `null` for 0\.5\.
+Gets the probability a label of a multi\-label set must reach to be suggested, or `null` for the set's rule, else 0\.5\.
 
 ```csharp
 public System.Nullable<double> Threshold { get; }
@@ -3133,7 +3394,7 @@ public System.Nullable<double> Threshold { get; }
 
 ## LayaLabelSetThreshold\.TopCount Property
 
-Gets the number of labels of a single\-choice set suggested, highest probability first, or `null` for 1\.
+Gets the number of labels of a single\-choice set suggested, highest probability first, or `null` for 1\. Ignored when [LabelId](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaLabelSetThreshold.LabelId 'DiGi\.Laya\.Classes\.LayaLabelSetThreshold\.LabelId') is set\.
 
 ```csharp
 public System.Nullable<int> TopCount { get; }
@@ -3545,7 +3806,7 @@ public string? WorkingDirectory { get; set; }
 
 Represents how a Laya prediction run went: the responses it produced and every finding about the run and the requests\.
 
-A run is never reported by an exception. A request that could not be written, was refused by laya or got no response is named in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.Messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.Messages'), and the responses of the others are kept.
+A run is never reported by an exception. A request that could not be written, was refused by laya or got no response is named in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.Messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.Messages'), and the responses of the others are kept. Every finding about one request is also kept, with that request's identifier, in [RequestMessages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.RequestMessages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.RequestMessages').
 
 ```csharp
 public class LayaPredictionResult : DiGi.Core.Classes.SerializableResult, DiGi.Laya.Interfaces.ILayaSerializableObject, DiGi.Laya.Interfaces.ILayaObject, DiGi.Core.Interfaces.IObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject
@@ -3573,70 +3834,76 @@ public LayaPredictionResult(DiGi.Laya.Classes.LayaPredictionResult? layaPredicti
 
 The source result to copy from\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_)'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_)'></a>
 
-## LayaPredictionResult\(IEnumerable\<LayaResponse\>, string, string, Nullable\<TimeSpan\>, int, bool, bool, bool, IEnumerable\<string\>\) Constructor
+## LayaPredictionResult\(IEnumerable\<LayaResponse\>, string, string, Nullable\<TimeSpan\>, int, bool, bool, bool, IEnumerable\<string\>, IEnumerable\<LayaRequestMessage\>\) Constructor
 
 Initializes a new instance of the [LayaPredictionResult](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult 'DiGi\.Laya\.Classes\.LayaPredictionResult') class\.
 
 ```csharp
-public LayaPredictionResult(System.Collections.Generic.IEnumerable<DiGi.Laya.Classes.LayaResponse>? responses, string? modelSHA256, string? calibrationSHA256, System.Nullable<System.TimeSpan> duration, int exitCode, bool stalled, bool timedOut, bool cancelled, System.Collections.Generic.IEnumerable<string>? messages);
+public LayaPredictionResult(System.Collections.Generic.IEnumerable<DiGi.Laya.Classes.LayaResponse>? responses, string? modelSHA256, string? calibrationSHA256, System.Nullable<System.TimeSpan> duration, int exitCode, bool stalled, bool timedOut, bool cancelled, System.Collections.Generic.IEnumerable<string>? messages, System.Collections.Generic.IEnumerable<DiGi.Laya.Classes.LayaRequestMessage>? requestMessages);
 ```
 #### Parameters
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).responses'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).responses'></a>
 
 `responses` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[LayaResponse](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaResponse 'DiGi\.Laya\.Classes\.LayaResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The responses read back, in request order\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).modelSHA256'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).modelSHA256'></a>
 
 `modelSHA256` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The SHA\-256 of the checkpoint directory the run used\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).calibrationSHA256'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).calibrationSHA256'></a>
 
 `calibrationSHA256` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The SHA\-256 of the calibration file the run used, or `null` when it used none\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).duration'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).duration'></a>
 
 `duration` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.TimeSpan](https://learn.microsoft.com/en-us/dotnet/api/system.timespan 'System\.TimeSpan')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The wall\-clock time of the run, or `null` when no process was started\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).exitCode'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).exitCode'></a>
 
 `exitCode` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The exit code of predict\.py; \-1 when the process was ended, failed to start or was never started\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).stalled'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).stalled'></a>
 
 `stalled` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
 A value indicating whether the process was ended for inactivity\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).timedOut'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).timedOut'></a>
 
 `timedOut` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
 A value indicating whether the process was ended by the overall time limit\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).cancelled'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).cancelled'></a>
 
 `cancelled` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
 A value indicating whether the caller cancelled the run\.
 
-<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_).messages'></a>
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).messages'></a>
 
 `messages` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The findings about the run and the requests\.
+
+<a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).requestMessages'></a>
+
+`requestMessages` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[LayaRequestMessage](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaRequestMessage 'DiGi\.Laya\.Classes\.LayaRequestMessage')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The findings about one request each, with the identifier of that request; each is also one of [messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaResponse_,string,string,System.Nullable_System.TimeSpan_,int,bool,bool,bool,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_DiGi.Laya.Classes.LayaRequestMessage_).messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.LayaPredictionResult\(System\.Collections\.Generic\.IEnumerable\<DiGi\.Laya\.Classes\.LayaResponse\>, string, string, System\.Nullable\<System\.TimeSpan\>, int, bool, bool, bool, System\.Collections\.Generic\.IEnumerable\<string\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.Laya\.Classes\.LayaRequestMessage\>\)\.messages')\.
 
 <a name='DiGi.Laya.Classes.LayaPredictionResult.LayaPredictionResult(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -3714,6 +3981,8 @@ public int ExitCode { get; }
 
 Gets the findings about the run and the requests\.
 
+Every finding about one request is also in [RequestMessages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.RequestMessages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.RequestMessages'); the others concern the run as a whole.
+
 ```csharp
 public System.Collections.Generic.List<string>? Messages { get; }
 ```
@@ -3733,6 +4002,21 @@ public string? ModelSHA256 { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.Laya.Classes.LayaPredictionResult.RequestMessages'></a>
+
+## LayaPredictionResult\.RequestMessages Property
+
+Gets the findings about one request each, with the identifier of that request: a request left out, refused by laya, without a response, missing an answer or truncated\.
+
+Each is also one of [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.Messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.Messages'), which is kept whole for compatibility. A finding that names no request of the run - a refused run, the process exit, a time limit, a response line answering no request - is only in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.Messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.Messages').
+
+```csharp
+public System.Collections.Generic.List<DiGi.Laya.Classes.LayaRequestMessage>? RequestMessages { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[LayaRequestMessage](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaRequestMessage 'DiGi\.Laya\.Classes\.LayaRequestMessage')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 <a name='DiGi.Laya.Classes.LayaPredictionResult.Responses'></a>
 
@@ -4173,6 +4457,107 @@ public bool StateIsJson { get; }
 
 #### Property Value
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage'></a>
+
+## LayaRequestMessage Class
+
+Represents a finding of a Laya prediction run about one request, together with the identifier of that request\.
+
+Held by [RequestMessages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.RequestMessages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.RequestMessages') so that a caller can find the findings of a request by its identifier rather than by reading the message text.
+
+```csharp
+public class LayaRequestMessage : DiGi.Core.Classes.SerializableObject, DiGi.Laya.Interfaces.ILayaSerializableObject, DiGi.Laya.Interfaces.ILayaObject, DiGi.Core.Interfaces.IObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → LayaRequestMessage
+
+Implements [ILayaSerializableObject](DiGi.Laya.Interfaces.md#DiGi.Laya.Interfaces.ILayaSerializableObject 'DiGi\.Laya\.Interfaces\.ILayaSerializableObject'), [ILayaObject](DiGi.Laya.Interfaces.md#DiGi.Laya.Interfaces.ILayaObject 'DiGi\.Laya\.Interfaces\.ILayaObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject')
+### Constructors
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(DiGi.Laya.Classes.LayaRequestMessage)'></a>
+
+## LayaRequestMessage\(LayaRequestMessage\) Constructor
+
+Initializes a new instance of the [LayaRequestMessage](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaRequestMessage 'DiGi\.Laya\.Classes\.LayaRequestMessage') class by copying an existing request message\.
+
+```csharp
+public LayaRequestMessage(DiGi.Laya.Classes.LayaRequestMessage? layaRequestMessage);
+```
+#### Parameters
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(DiGi.Laya.Classes.LayaRequestMessage).layaRequestMessage'></a>
+
+`layaRequestMessage` [LayaRequestMessage](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaRequestMessage 'DiGi\.Laya\.Classes\.LayaRequestMessage')
+
+The source request message to copy from\.
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(string,string)'></a>
+
+## LayaRequestMessage\(string, string\) Constructor
+
+Initializes a new instance of the [LayaRequestMessage](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaRequestMessage 'DiGi\.Laya\.Classes\.LayaRequestMessage') class\.
+
+```csharp
+public LayaRequestMessage(string? requestId, string? message);
+```
+#### Parameters
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(string,string).requestId'></a>
+
+`requestId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identifier of the request the finding is about\.
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(string,string).message'></a>
+
+`message` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The finding, as it also appears in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.Messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.Messages')\.
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(System.Text.Json.Nodes.JsonObject)'></a>
+
+## LayaRequestMessage\(JsonObject\) Constructor
+
+Initializes a new instance of the [LayaRequestMessage](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaRequestMessage 'DiGi\.Laya\.Classes\.LayaRequestMessage') class using a JSON object\.
+
+```csharp
+public LayaRequestMessage(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.LayaRequestMessage(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object containing the request message data\.
+### Properties
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.Message'></a>
+
+## LayaRequestMessage\.Message Property
+
+Gets the finding, as it also appears in [Messages](DiGi.Laya.Classes.md#DiGi.Laya.Classes.LayaPredictionResult.Messages 'DiGi\.Laya\.Classes\.LayaPredictionResult\.Messages')\.
+
+```csharp
+public string? Message { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.Laya.Classes.LayaRequestMessage.RequestId'></a>
+
+## LayaRequestMessage\.RequestId Property
+
+Gets the identifier of the request the finding is about\.
+
+```csharp
+public string? RequestId { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.Laya.Classes.LayaResponse'></a>
 
