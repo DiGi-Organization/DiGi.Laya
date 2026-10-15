@@ -1,0 +1,19 @@
+# Pinned for DiGi.Laya's scripts (check.py, predict.py, train.py, calibrate.py).
+#
+# laya is exact: the scripts and DiGi.Laya's Convert files are written against the request, answer and
+# training-row shapes of this version (verified 2026-10-15, DiGi-Organization/DiGi.Laya#1), and check.py refuses
+# any other installed version. Moving to a new laya means re-verifying those shapes and re-capturing
+# DiGi.Test/files/Laya_Response.jsonl.
+#
+# transformers is a floor, laya's own. 5 or later is needed only for a checkpoint trained with
+# option_layout="parallel"; every published checkpoint, laya-multilingual included, uses the sequential layout,
+# and check.py reports a parallel checkpoint under transformers 4 as not runnable.
+#
+# torch is a floor rather than an exact pin, as in DiGi.YOLO: its wheels are specific to a platform and CUDA build,
+# so the installer picks the build (a CUDA 12.8 wheel for an RTX 50 series card, the CPU wheel elsewhere) and an
+# exact pin would make this file uninstallable on a machine set up differently. Install torch first from the right
+# index, then this file.
+
+laya==0.4.7
+transformers>=4.48
+torch>=2.0
